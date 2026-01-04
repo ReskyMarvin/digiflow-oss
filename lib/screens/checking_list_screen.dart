@@ -112,13 +112,37 @@ class _CheckingListScreenState extends State<CheckingListScreen> {
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isEmpty) return;
+
+              // simpan context sebelum async
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+
+              try {
                 setState(() {
-                  cl.name = controller.text.trim();
+                  cl.name = newName;
                 });
+
+                // 🔑 INI YANG SEBELUMNYA HILANG
+                await OutboundMemory.updateCheckingList(cl);
+
+                navigator.pop();
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Nama checking list diperbarui'),
+                  ),
+                );
+              } catch (e) {
+                navigator.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
-              Navigator.pop(context);
             },
             child: const Text('Simpan'),
           ),

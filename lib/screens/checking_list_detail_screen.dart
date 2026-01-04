@@ -55,17 +55,20 @@ class _CheckingListDetailScreenState extends State<CheckingListDetailScreen> {
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: pallets.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final p = pallets[index];
                   return _PalletCard(
                     index: index,
                     code: '${p.batch}-${p.palletNo}',
                     editable: widget.editable,
-                    onDelete: () {
+                    onDelete: () async {
                       setState(() {
                         pallets.removeAt(index);
                       });
+                      await OutboundMemory.updateCheckingList(
+                        widget.checkingList,
+                      );
                     },
                   );
                 },
@@ -92,7 +95,7 @@ class _PalletCard extends StatelessWidget {
   final int index;
   final String code;
   final bool editable;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const _PalletCard({
     required this.index,
@@ -136,7 +139,9 @@ class _PalletCard extends StatelessWidget {
           if (editable)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: onDelete,
+              onPressed: () async {
+                await onDelete();
+              },
             ),
         ],
       ),
